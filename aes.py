@@ -4,8 +4,11 @@ sbox=[[0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0
 
 rcon = [[0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]] 
 
-def hexTab(tab):
-    return [[hex(j) for j in i] for i in tab]
+def hexTab(tab, nox = 0):
+    if nox != 0:
+        return [['{:02x}'.format(j) for j in i] for i in tab]
+    else: 
+        return [[hex(j) for j in i] for i in tab]
 
 
 def subytesTab(tab):
@@ -38,9 +41,9 @@ def mixColumns(tab):
     for i in range(4):
         for j in range(4):
             h = tab[i][j] & 0x80 #hight bit
-            tab2[i][j] = (tab[i][j] << 1) & 0xff
+            tab2[i][j] = tab[i][j] << 1
             if h == 0x80: #hight bit
-                tab2[i][j] ^= 0x1b #rijnadel's galois field
+                tab2[i][j] ^= 0x11b #rijnadel's galois field
     for i in range(4):
         result[0][i] = tab2[0][i] ^ tab[3][i] ^ tab[2][i] ^ tab2[1][i] ^ tab[1][i]
         result[1][i] = tab2[1][i] ^ tab[0][i] ^ tab[3][i] ^ tab2[2][i] ^ tab[2][i]
@@ -55,8 +58,8 @@ def convertStrInTab(str):
     return result
 
 def convertTabInStrHex(tab):
-    result=''
-    tab = hexTab(tab)
+    result = ''
+    tab = hexTab(zip(*tab), 1)
     for i in tab:
         for j in i:
             result += j
@@ -100,7 +103,6 @@ def aes():
     #print 'cypher text after shiftRows: ', hexTab(text)
     text = addRoundKey(text, key, 10)
     #print 'cypher text after addRoundKey: ', hexTab(text)
-
     print convertTabInStrHex(text)
 
 if __name__ == "__main__":
