@@ -35,21 +35,26 @@ def shiftRows(tab):
             tab[i].append(tab[i].pop(0))
     return tab
 
-def mixColumns(tab):
-    tab2 = copy.deepcopy(tab)
-    result = copy.deepcopy(tab)
-    for i in range(4):
-        for j in range(4):
-            h = tab[i][j] & 0x80 #hight bit
-            tab2[i][j] = tab[i][j] << 1
-            if h == 0x80: #hight bit
-                tab2[i][j] ^= 0x11b #rijnadel's galois field
-    for i in range(4):
-        result[0][i] = tab2[0][i] ^ tab[3][i] ^ tab[2][i] ^ tab2[1][i] ^ tab[1][i]
-        result[1][i] = tab2[1][i] ^ tab[0][i] ^ tab[3][i] ^ tab2[2][i] ^ tab[2][i]
-        result[2][i] = tab2[2][i] ^ tab[1][i] ^ tab[0][i] ^ tab2[3][i] ^ tab[3][i]
-        result[3][i] = tab2[3][i] ^ tab[2][i] ^ tab[1][i] ^ tab2[0][i] ^ tab[0][i]
+def mixColumnsVec(vec):
+    result = [-1, -1, -1, -1]
+    vec2 = [-1, -1, -1, -1]
+    for j in range(4):
+        h = vec[i][j] & 0x80 #hight bit
+        vec2[j] = vec[j][i] << 1
+        if h == 0x80: #hight bit
+            vec2[j] ^= 0x11b #rijnadel's galois field
+    result[0] = vec2[0] ^ vec[3] ^ vec[2] ^ vec2[1] ^ vec[1]
+    result[1] = vec2[1] ^ vec[0] ^ vec[3] ^ vec2[2] ^ vec[2]
+    result[2] = vec2[2] ^ vec[1] ^ vec[0] ^ vec2[3] ^ vec[3]
+    result[3] = vec2[3] ^ vec[2] ^ vec[1] ^ vec2[0] ^ vec[0]
     return result
+
+def mixColumns(tab):
+    result = []
+    tab = zip(*tab)
+    for i in range(4):
+        result.append(mixColumnsVec(tab[i]))
+    return zip(*result)
 
 def convertStrInTab(str):
     if len(str) != 32:
