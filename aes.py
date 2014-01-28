@@ -18,13 +18,13 @@ def subytesTab(tab):
     tab = [[sbox[tab[i][j] / 16][tab[i][j] % 16] for j in range(4)] for i in range(4)]
     return tab
 
-def subytesVec(vec):
+def subytesVecHor(vec):
     vec = [sbox[vec[i] / 16][vec[i] % 16] for i in range(4)]
     return vec
 
 def keySchedule(key):
     for i in range(0, 10):
-        vec = subytesVec([key[1][(4 * i) + 3], key[2][(4 * i) + 3], key[3][(4 * i) + 3], key[0][(4 * i) + 3]])
+        vec = subytesVecHor([key[1][(4 * i) + 3], key[2][(4 * i) + 3], key[3][(4 * i) + 3], key[0][(4 * i) + 3]])
         for l in range(4):
             key[l].append(vec[l] ^ key[l][4 * i] ^ rcon[l][i])
         for j in range(1, 4):
@@ -38,12 +38,12 @@ def shiftRows(tab):
             tab[i].append(tab[i].pop(0))
     return tab
 
-def mixColumnsVec(vec):
+def mixColumnsVecVert(vec):
     result = [-1, -1, -1, -1]
     vec2 = [-1, -1, -1, -1]
     for j in range(4):
-        h = vec[i][j] & 0x80 #hight bit
-        vec2[j] = vec[j][i] << 1
+        h = vec[j] & 0x80 #hight bit
+        vec2[j] = vec[j] << 1
         if h == 0x80: #hight bit
             vec2[j] ^= 0x11b #rijnadel's galois field
     result[0] = vec2[0] ^ vec[3] ^ vec[2] ^ vec2[1] ^ vec[1]
@@ -56,8 +56,8 @@ def mixColumns(tab):
     result = []
     tab = zip(*tab)
     for i in range(4):
-        result.append(mixColumnsVec(tab[i]))
-    return zip(*result)
+        result.append(mixColumnsVecVert(tab[i]))
+    return map(list, zip(*result))
 
 def convertStrInTab(str):
     if len(str) != 32:
@@ -125,4 +125,5 @@ def aes(text, key, typeFault = 0, indexBytes = 0):
     return text
 
 if __name__ == "__main__":
-    pass
+    assert convertTabInStrHex(aes(convertStrInTab("3243f6a8885a308d313198a2e0370734"), convertStrInTab("2b7e151628aed2a6abf7158809cf4f3c"))) == "3925841d02dc09fbdc118597196a0b32"
+    print "OK"

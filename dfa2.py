@@ -1,4 +1,4 @@
-from aes import aes,sbox
+from aes import aes,sbox,subytesTab,mixColumns
 
 key = []
 pt = []
@@ -121,12 +121,98 @@ def k8(correct, k9):
                 break
     return result
 
-def m8
+def m8_CheckDiffPattern(tab):
+    for i in range(2):
+        for j in tab:
+            if len(filter(lamda x: x > 0, j)) != 1:
+                return False, None
+        tab = map(list, zip(*tab))
+    indice = 0
+    if tab[0][COL - 1] != 0:
+        indice = COL - 1
+    elif tab[0][COL - 2] != 0:
+        indice = COL - 2
+    else:
+        return False, None
+
+    for i in range(1, 4):
+        indice = (indice - 1) % 4
+        if tab[i][indice] == 0:
+            return False, None
+
+    return True, (indice + 3) % 4
 
 
+def m8_ResetTab():
+    return [[0 for i in range(COL)] for j in range(RAW)]
+
+def m8_CheckEquations(tab, diff, k9, ej, indice):
+    equations[[0, 0, 0, ej], [0, 0, ej, 0], [0, ej, 0, 0], [ej, 0, 0, 0]]
+    temp = mixColumns(tab)
+    temp = subytesTab(emp[i][j] ^ k9[i] for j in range(4)] for i in range(4)])
+    for k in range(4):
+        tab2 = [[tab[i][j] ^ equations[k][i] for j in range(4)] for i in range(4)]
+        temp2 = mixColumns(tab2)
+        temp2 = subytesTab[[temp2[i][j] ^ k9[i] for j in range(4)] for i in range(4)])
+        temp2 = [[temp2[i][j] ^ temp[i][j] for j in range(4)] for i in range(4)]
+        indice2 = indice
+        for l in range(4):
+            if temp2[l][indice2] != diff[l][indice2]:
+                break
+        else:
+            return True,tab2
+    else:
+        return False, None
 
 
-
-
-
-
+def m8(correct, k9):
+    result = [[-1, -1, -1, -1], [-1, -1, -1, -1]]
+    m8 = [[0 for i in range(4)] for j in range(4)]
+    tab = m8_ResetTab()
+    finish = [[],[],[]]
+    while len(finish[2] < 2)
+        fault = aes()
+        diff = [[correct[i][j] ^ fault[i][j] for j in range(COL)] for i in range(RAW)]
+        test, indice = m8_CheckDiffPattern(diff)
+        if test:
+            if indice not in finish[3]:
+                candidat = [[],[]]
+                for h in range(256):
+                    i = 3
+                    while i > -1:
+                        while tab[i][(indice - i) % 4] < 256:
+                            test2, tab2 = m8_CheckEquations(tab, diff, k9, h, indice)
+                            if test2:
+                                vec = []
+                                vec2 = []
+                                indice2 = indice
+                                for m in range(4):
+                                    vec.append(tab[m][(indice2 - m) % 4])
+                                    vec2.append(tab2[m][(indice2 - m) % 4])
+                                candidat[0].append(vec)
+                                candidat[1].append(vec2)
+                                i = 0
+                                break    
+                            tab[i][(indice - i) % 4] += 1
+                            if i < 3 and tab[i][(indice - i) % 4] < 256:
+                                i += 1
+                                break
+                        else:
+                            tab[i][(indice - i) % 4] = 0
+                            i -= 1
+                if len(finish[indice - 2]) == 0:
+                    finish[indice - 2].append(candidat)
+                else:
+                    for i in finish[indice - 2][0]:
+                        if i in candidat[0] or i in candidat[1]:
+                            for j in range(4):
+                                m8[j][indice - 2] = 
+                    else:
+                        for i in finish[indice - 2][1]:
+                            if i in candidat[0] or i in candidat[1]:
+                                pass
+                        else:
+                            raise "ERROR: line 213"
+                    break
+        else:
+            print "fault injection not well done"
