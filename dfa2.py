@@ -1,8 +1,7 @@
-from aes import aes,sbox,subytesTab,mixColumns
+from aes import aes,sbox,subytesTab,mixColumns,shiftRows,keySchedule
 
-key = []
-pt = []
-correct = []
+text = [[0x32,0x88,0x31,0xe0],[0x43,0x5a,0x31,0x37],[0xf6,0x30,0x98,0x07],[0xa8,0x8d,0xa2,0x34]]
+key = [[0x2b,0x28,0xab,0x09],[0x7e,0xae,0xf7,0xcf],[0x15,0xd2,0x15,0x4f],[0x16,0xa6,0x88,0x3c]]
 
 RAW = 4
 COL = 4
@@ -21,35 +20,46 @@ def k9_K9J(ckdk, ej):
     else:
         raise "error line 21"
 
-def k9():
+def k9_CheckDiffPattern(tab):
+    temp = []
+    for i in range(4):
+        temp.append([tab[i][COL - 1],i])
+    temp = filter(lambda x: x[0] > 0, temp)
+    if len(temp) == 2 and (temp[0][1] + temp[1][1]) % 2 == 1:
+        return True
+    else:
+        return False
+
+def k9(correct):
     result = [-1,-1,-1,-1]
     finish = [[],[],[]]
     while len(finish[2]) < RAW:
-        fault = aes()
+        fault = aes(text, key, 2, -1)
         diff = [[correct[i][j] ^ fault[i][j] for j in range(COL)] for i in range(RAW)]
-        for i in range(RAW):
-            if diff[i][COL - 1] != 0 and diff[(i - 1) % 4][COL - 1] == 0:
-                ckdk = correct[i - 1][0] ^ fault[(i - 1) % 4][0]
-                ej = diff[finish[i]][COL - 1]
-                if i not in finish[0]:
-                    finish[0].append(i)
+        if k9_CheckDiffPattern(diff):
+            for i in range(RAW):
+                if diff[i][COL - 1] != 0 and diff[(i + 1) % 4][COL - 1] == 0:
+                    ckdk = diff[(i - 1) % 4][0]
+                    ej = diff[i][COL - 1]
                     sub1,sub2 = k9_K9J(ckdk, ej)
-                    finish[1].append([ej,sub1,sub2])
-                elif i not in finish[2]:
-                    indice = finish[0].index(i):
-                    if finish[1][indice][0] == ej:
-                        break
-                    sub1,sub2 = k9_K9J(ckdk, ej)
-                    if sub1 in finish[1][indice][1:]:
-                        result[i] = sub1
-                    elif sub2 in finish[1][indice][1:]:
-                        result[i] = sub2
-                    else:
-                        raise "error line 50"
-                    finish[2].append(i)
-                break
-        else:
-            raise "error line 54"
+                    if i not in finish[0]:
+                        finish[0].append(i)
+                        finish[1].append([ej,sub1,sub2])
+                    elif i not in finish[2]:
+                        indice = finish[0].index(i)
+                        if finish[1][indice][0] == ej:
+                            break
+                        if sub1 in finish[1][indice][1:]:
+                            result[i] = sub1
+                        elif sub2 in finish[1][indice][1:]:
+                            result[i] = sub2
+                        else:
+                            raise "error line 50"
+                        finish[2].append(i)
+                    break
+            else:
+                raise "error line 54"
+    print finish
     return result
 
 def K8_Ej(j, cjdj):
@@ -78,7 +88,7 @@ def k8(correct, k9):
     result = [-1,-1,-1,-1]
     finish = [[],[],[]]
     while len(finish[2]) < RAW:
-        fault = aes()
+        fault = aes(text, key, 3, -1)
         diff = [[correct[i][j] ^ fault[i][j] for j in range(COL)] for i in range(RAW)]
         for i in range(RAW):
             if i not in finish[2] and diff[i][COL - 1] == 0 and diff[(i - 1) % 4][COL - 1] != 0 and diff[(i - 2) % 4][COL - 1] != 0 and diff[(i - 3) % 4][COL - 1] != 0:
@@ -100,7 +110,7 @@ def k8(correct, k9):
                             sub1, sub2 = K8_K8J(fj, j)
                             temp.append([sub1,sub2])
                     length = len(finish[1][indice][1])
-                    if length　> 1:
+                    if length > 1:
                         k = 0
                         while k < len(finish[1][indice][1]):
                             if finish[1][indice][1][k] not in temp[1] and finish[1][indice][2][k] not in temp[2]:
@@ -124,7 +134,7 @@ def k8(correct, k9):
 def m8_CheckDiffPattern(tab):
     for i in range(2):
         for j in tab:
-            if len(filter(lamda x: x > 0, j)) != 1:
+            if len(filter(lambda x: x > 0, j)) != 1:
                 return False, None
         tab = map(list, zip(*tab))
     indice = 0
@@ -142,18 +152,14 @@ def m8_CheckDiffPattern(tab):
 
     return True, (indice + 3) % 4
 
-
-def m8_ResetTab():
-    return [[0 for i in range(COL)] for j in range(RAW)]
-
 def m8_CheckEquations(tab, diff, k9, ej, indice):
     equations[[0, 0, 0, ej], [0, 0, ej, 0], [0, ej, 0, 0], [ej, 0, 0, 0]]
     temp = mixColumns(tab)
-    temp = subytesTab(emp[i][j] ^ k9[i] for j in range(4)] for i in range(4)])
+    temp = subytesTab([[temp[i][j] ^ k9[i] for j in range(4)] for i in range(4)])
     for k in range(4):
         tab2 = [[tab[i][j] ^ equations[k][i] for j in range(4)] for i in range(4)]
         temp2 = mixColumns(tab2)
-        temp2 = subytesTab[[temp2[i][j] ^ k9[i] for j in range(4)] for i in range(4)])
+        temp2 = subytesTab([[temp2[i][j] ^ k9[i] for j in range(4)] for i in range(4)])
         temp2 = [[temp2[i][j] ^ temp[i][j] for j in range(4)] for i in range(4)]
         indice2 = indice
         for l in range(4):
@@ -164,18 +170,16 @@ def m8_CheckEquations(tab, diff, k9, ej, indice):
     else:
         return False, None
 
-
 def m8(correct, k9):
-    result = [[-1, -1, -1, -1], [-1, -1, -1, -1]]
-    m8 = [[0 for i in range(4)] for j in range(4)]
-    tab = m8_ResetTab()
+    m8 = [[0 for i in range(COL)] for j in range(RAW)]
+    tab = [[0 for i in range(COL)] for j in range(RAW)]
     finish = [[],[],[]]
-    while len(finish[2] < 2)
-        fault = aes()
+    while len(finish[2]) < 2:
+        fault = aes(text, key, 4, -1)
         diff = [[correct[i][j] ^ fault[i][j] for j in range(COL)] for i in range(RAW)]
         test, indice = m8_CheckDiffPattern(diff)
         if test:
-            if indice not in finish[3]:
+            if indice not in finish[2]:
                 candidat = [[],[]]
                 for h in range(256):
                     i = 3
@@ -206,13 +210,33 @@ def m8(correct, k9):
                     for i in finish[indice - 2][0]:
                         if i in candidat[0] or i in candidat[1]:
                             for j in range(4):
-                                m8[j][indice - 2] = 
+                                m8[j][indice] = i[j]
                     else:
                         for i in finish[indice - 2][1]:
                             if i in candidat[0] or i in candidat[1]:
-                                pass
+                                for j in range(4):
+                                    m8[j][indice] = i[j]
                         else:
                             raise "ERROR: line 213"
+                    finish[2].append(indice)
                     break
         else:
             print "fault injection not well done"
+    temp = mixColumns(m8)
+    temp = [[temp[i][j] ^ k9[i][j] for j in range(COL)] for i in range(RAW)]
+    m8 = mixColumns(shiftRows(subytesTab(temp)))
+    result = [[m8[i][j] ^ correct[i][j] for j in range(4)] for i in range(4)]
+    return result
+
+def dfa():
+    correct = aes(text, key)
+    k = k9(correct)
+    print k
+    k = key
+    for i in range(10):
+        k = keySchedule(k, i)
+    print zip(*k)
+
+if __name__ == "__main__":
+    dfa()
+

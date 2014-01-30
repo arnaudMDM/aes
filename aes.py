@@ -22,14 +22,13 @@ def subytesVecHor(vec):
     vec = [sbox[vec[i] / 16][vec[i] % 16] for i in range(4)]
     return vec
 
-def keySchedule(key):
-    for i in range(0, 10):
-        vec = subytesVecHor([key[1][(4 * i) + 3], key[2][(4 * i) + 3], key[3][(4 * i) + 3], key[0][(4 * i) + 3]])
+def keySchedule(key, round):
+    vec = subytesVecHor([key[1][(4 * round) + 3], key[2][(4 * round) + 3], key[3][(4 * round) + 3], key[0][(4 * round) + 3]])
+    for l in range(4):
+        key[l].append(vec[l] ^ key[l][4 * round] ^ rcon[l][round])
+    for j in range(1, 4):
         for l in range(4):
-            key[l].append(vec[l] ^ key[l][4 * i] ^ rcon[l][i])
-        for j in range(1, 4):
-            for l in range(4):
-                key[l].append(key[l][(4 * i) + 3 + j] ^ key[l][4 * i + j])
+            key[l].append(key[l][(4 * round) + 3 + j] ^ key[l][4 * round + j])
     return key
 
 def shiftRows(tab):
@@ -81,17 +80,26 @@ def convertLst4x4x8Lst8x1x16(liste):
     result = [liste[i][j] + liste[i][j + 1]  for i in range(4) for j in range(0, 4, 2)]
     return result
 
-def aes(text, key, typeFault = 0, indexBytes = 0):
+def aes(_text, _key, typeFault = 0, indexBytes = 0):
     """
+    indexBytes = -1 means choose a random number between 0 and 16 for indexBytes
     typeFault = 0 means no Fault
-    typeFault = 1 means one bit of indexBytes byte is changed randomly before the final round
+    typeFault = 1 means one bit of indexBytes byte of the cypher text is changed randomly before the final round
+    typeFault = 2 means the byte indexBytes of the keyRound is changed randomly before the keySchedule of the round 10 but after addRoundKey of the 9 round
+    typeFault = 3 means the byte indexBytes of the keyRound is changed randomly before the keySchedule of the round 9 but after addRoundKey of the 8 round
+    typeFault = 4 means the byte indexBytes of the cypher text is changed randomly before round 9 and after round 8
     """
     # text = convertStrInTab(raw_input('what is the text to encrypt in hexadecimal: '))
     # key = convertStrInTab(raw_input('what is the 128 bits first key: '))
     #print 'plain text: ', hexTab(text)
     #print '128 bits of the key: ', hexTab(key)
 
-    key = keySchedule(key)
+    text = copy.deepcopy(_text)
+    key = copy.deepcopy(_key)
+
+    if indexBytes == -1:
+        indexBytes = random.randrange(16)
+
     #print 'key after schedule: ', hexTab(key)
 
     #initial round
@@ -100,6 +108,11 @@ def aes(text, key, typeFault = 0, indexBytes = 0):
     #print 'cypher text after addRoundKey: ', hexTab(text)
     #round 1 to 9
     for i in range(1,10):
+        if typeFault == 3 and i == 9:
+            key[indexBytes % 4][32 + indexBytes / 4] = random.randrange(256)
+        elif typeFault == 4 and i == 9:
+            key[indexBytes % 4][32 + indexBytes / 4] = random.randrange(256)
+        key = keySchedule(key, i - 1)
         #print 'round ', i
         text = subytesTab(text)
         #print 'cypher text after subytes: ', hexTab(text) 
@@ -111,6 +124,12 @@ def aes(text, key, typeFault = 0, indexBytes = 0):
         #print 'cypher text after addRoundKey: ', hexTab(text)
     #round 10
     #print 'final round'
+    if typeFault == 2:
+        # print key
+        key[indexBytes % 4][36 + (indexBytes / 4)] = random.randrange(256)
+        # print key
+
+    key = keySchedule(key, 9)
 
     if typeFault == 1:
         bit = random.randrange(8)
