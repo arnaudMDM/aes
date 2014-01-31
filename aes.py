@@ -109,9 +109,9 @@ def aes(_text, _key, typeFault = 0, indexBytes = 0):
     #round 1 to 9
     for i in range(1,10):
         if typeFault == 3 and i == 9:
-            key[indexBytes % 4][32 + indexBytes / 4] = random.randrange(256)
+            key[indexBytes % 4][32 + (indexBytes / 4)] = random.randrange(256)
         elif typeFault == 4 and i == 9:
-            key[indexBytes % 4][32 + indexBytes / 4] = random.randrange(256)
+            text[indexBytes % 4][indexBytes / 4] = random.randrange(256)
         key = keySchedule(key, i - 1)
         #print 'round ', i
         text = subytesTab(text)
@@ -141,6 +141,7 @@ def aes(_text, _key, typeFault = 0, indexBytes = 0):
     #print 'cypher text after shiftRows: ', hexTab(text)
     text = addRoundKey(text, key, 10)
     #print 'cypher text after addRoundKey: ', hexTab(text)
+    # print indexBytes
     return text
 
 if __name__ == "__main__":
