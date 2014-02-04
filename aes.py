@@ -183,7 +183,7 @@ def aes_encrypt(_text, _key, typeFault = 0, indexBytes = 0):
     return text
 
 def aes_decrypt(_text, _key, typeFault = 0, indexBytes = 0):
-        """
+    """
     indexBytes = -1 means choose a random number between 0 and 16 for indexBytes
     typeFault = 0 means no Fault
     typeFault = 1 means one bit of indexBytes byte of the cypher text is changed randomly before the final round
