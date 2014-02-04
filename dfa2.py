@@ -43,6 +43,7 @@ class DFA2:
         while len(finish[2]) < RAW:
             fault = self.aes(text, key, 2, -1)
             diff = [[correct[i][j] ^ fault[i][j] for j in range(COL)] for i in range(RAW)]
+            print diff
             if self.k9_CheckDiffPattern(diff):
                 for i in range(RAW):
                     if diff[i][COL - 1] != 0 and diff[(i + 1) % 4][COL - 1] == 0:
@@ -266,14 +267,14 @@ class DFA2:
         correct = self.aes(text, key)
         k = self.k9(correct)
         print k
-        k = self.k8(correct, k)
-        print k
+        # k = self.k8(correct, k)
+        # print k
         # k=[[0,0,0,0],[0,0,0,0],[40, 209, 41, 65],[87, 92, 0, 110]]
         # print self.m8(correct, map(list, zip(*k)))
         k = key
         for i in range(10):
             k = keySchedule(k, i)
-        print zip(*k)[38]
+        print zip(*k)[39]
 
 if __name__ == "__main__":
     dfa = DFA2(aes_encrypt)
