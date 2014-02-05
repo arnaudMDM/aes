@@ -24,12 +24,12 @@ def aes_encrypt(_text, _key, typeFault = 0, indexBytes = 0):
     cm.set_key(flatten(copy.deepcopy(_key)))
 
     if typeFault == 2:
-        target_round = 9
+        target_round = 10
 
         # Period of glitch = 15
-        cm.write_param(addr_list["DELAY"], 10)
+        cm.write_param(addr_list["DELAY"], 3)
         # Period of glitch = 30
-        cm.write_param(addr_list["PERIOD"], 20)
+        cm.write_param(addr_list["PERIOD"], 115)
         # Fine adjustment = 41
         cm.write_param(addr_list["POS_FINE"], 34 + target_round)
         # Enable glitch injection

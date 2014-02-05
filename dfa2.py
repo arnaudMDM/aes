@@ -44,6 +44,7 @@ class DFA2:
             fault = self.aes(text, key, 2, -1)
             diff = [[correct[i][j] ^ fault[i][j] for j in range(COL)] for i in range(RAW)]
             if self.k9_CheckDiffPattern(diff):
+                print "yeah"
                 for i in range(RAW):
                     if diff[i][COL - 1] != 0 and diff[(i + 1) % 4][COL - 1] == 0:
                         ckdk = diff[(i - 1) % 4][0]
