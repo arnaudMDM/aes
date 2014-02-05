@@ -43,7 +43,6 @@ class DFA2:
         while len(finish[2]) < RAW:
             fault = self.aes(text, key, 2, -1)
             diff = [[correct[i][j] ^ fault[i][j] for j in range(COL)] for i in range(RAW)]
-            print diff
             if self.k9_CheckDiffPattern(diff):
                 for i in range(RAW):
                     if diff[i][COL - 1] != 0 and diff[(i + 1) % 4][COL - 1] == 0:
